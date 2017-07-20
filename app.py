@@ -19,17 +19,25 @@ def main_page():
         try:
             with connection.cursor() as cur:
                 result = cur.execute("SELECT name FROM sqlite_master WHERE type='table';").fetchall()
-                table_names = sorted(zip(*result)[0])
-                for table_name in table_names:
-                    r += "\n<h2>" + table_name + "</h2>"
-                    result = cur.execute("PRAGMA table_info('%s')" % table_name).fetchall()
-                    column_names = zip(*result)[1]
-                    r += "\t".join(column_names)
-                    r += "<br>"
-                    result2 =  cur.execute("select * from {}".format(table_name)).fetchall()
-                    for row in result2:
-                        r += "\n" + "\t".join(["{}".format(v) for v in tuple(row)])
-
+                if len(result) == 0:
+                    r += "No tables found!"
+                else: 
+                    table_names = sorted(zip(*result)[0])
+                    for table_name in table_names:
+                        r += "\n<h2>" + table_name + "</h2>"
+                        result = cur.execute("PRAGMA table_info('%s')" % table_name).fetchall()
+                        column_names = zip(*result)[1]
+                        r += "<table><tr>"
+                        for cn in column_names:
+                            r += "<td>{}</td>".format(cn)
+                        r += "</tr>\n"
+                        result2 =  cur.execute("select * from {}".format(table_name)).fetchall()
+                        for row in result2:
+                            r += "<tr>"
+                            for val in tuple(row):
+                                r += "<td>{}</td>".format(val)
+                            r += "</tr>"
+                        r += "</table>"
         finally:
             connection.close()
         r += "</html>"
